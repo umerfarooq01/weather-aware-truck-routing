@@ -173,17 +173,17 @@ export function MapView({ plan, selected, onSelect, activeCheckpoint, onCheckpoi
       if (route.id === selected) continue
       const track = tracks.get(route.id)!
       L.polyline(track.pts, { pane: 'routes-bg', color: '#ffffff', weight: 9, opacity: 0.9 }).addTo(layer)
-      const line = L.polyline(track.pts, { pane: 'routes-bg', color: '#7d838c', weight: 4.5, opacity: 0.85 }).addTo(layer)
+      const line = L.polyline(track.pts, { pane: 'routes-bg', color: '#8796a8', weight: 4.5, opacity: 0.85 }).addTo(layer)
       line.on('click', () => callbacks.current.onSelect(route.id))
-      line.on('mouseover', () => line.setStyle({ color: '#3d434c' }))
-      line.on('mouseout', () => line.setStyle({ color: '#7d838c' }))
+      line.on('mouseover', () => line.setStyle({ color: '#3a4a60' }))
+      line.on('mouseout', () => line.setStyle({ color: '#8796a8' }))
       line.bindTooltip(`Route ${route.name} · ${fmtDuration(route.trip_hours)} · click to inspect`, { sticky: true, className: 'map-tip' })
     }
 
     const route = plan.routes.find((r) => r.id === selected)
     if (!route) return
     const track = tracks.get(route.id)!
-    L.polyline(track.pts, { color: '#16181d', weight: 10, opacity: 0.85 }).addTo(layer)
+    L.polyline(track.pts, { color: '#0f1b2d', weight: 10, opacity: 0.85 }).addTo(layer)
     for (const seg of route.segments) {
       L.polyline(seg.coords, { color: riskColor(seg.level), weight: 6, opacity: 1, interactive: false }).addTo(layer)
     }

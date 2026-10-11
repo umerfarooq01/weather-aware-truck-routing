@@ -116,14 +116,8 @@ export default function App() {
     <div className="app">
       <aside className="panel">
         <header className="brand">
-          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden>
-            <path d="M3 17c4 0 5-10 9-10s5 10 9 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="12" cy="7" r="2" fill="var(--accent)" />
-          </svg>
-          <div>
-            <h1>Headwind</h1>
-            <p>Weather-aware truck routing</p>
-          </div>
+          <img src="/logo.png" alt="Headwind" width={124} height={34} />
+          <span className="brand-tag">Weather-aware truck routing</span>
         </header>
 
         <TripForm form={form} setForm={setForm} onSubmit={submit} busy={busy} />

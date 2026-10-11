@@ -8,3 +8,6 @@ __pycache__/
 .vercel
 .DS_Store
 .claude/
+
+.vercel
+.env*
