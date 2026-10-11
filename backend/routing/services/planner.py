@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from . import risk
 from .geo import interpolate, simplify
 from .routes import Route, get_routes
-from .weather import fetch_hourly
+from .weather import cluster, fetch_hourly
 
 # FMCSA hours-of-service (property carriers), simplified: 30-min break after 8h of driving,
 # 10h off-duty after 11h of driving.
@@ -16,6 +16,8 @@ HOS_BREAK_S = 30 * 60
 HOS_REST_S = 10 * 3600
 
 ROUTE_NAMES = ["A", "B", "C", "D", "E"]
+# Unique forecast locations per plan; keeps a plan + heatmap well under the free weather API's per-minute limit.
+MAX_WEATHER_POINTS = 200
 
 
 def elapsed_with_hos(driving_s: float, hos: bool) -> float:
@@ -106,7 +108,11 @@ def plan_trip(origin: dict, dest: dict, departure: datetime, load_lb: int, inter
         layouts.append(cps)
 
     last_eta = max(cps[-1]["eta"] for cps in layouts)
-    series = fetch_hourly(all_points, departure, last_eta + timedelta(hours=1))
+    # Every checkpoint keeps its own ETA; on very long trips at small intervals, nearby
+    # checkpoints share one forecast location to stay within the weather API budget.
+    reps, rep_index = cluster(all_points, MAX_WEATHER_POINTS)
+    rep_series = fetch_hourly(reps, departure, last_eta + timedelta(hours=1))
+    series = [rep_series[i] for i in rep_index]
 
     results = []
     cursor = 0

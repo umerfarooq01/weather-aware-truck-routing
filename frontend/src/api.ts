@@ -20,7 +20,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   if (!resp.ok) {
     const message = (body as { error?: string } | null)?.error
-    throw new ApiError(message ?? `Request failed (${resp.status})`)
+    if (message) throw new ApiError(message)
+    if (resp.status === 504) throw new ApiError('The planner took too long. Try a larger checkpoint interval or a shorter trip.')
+    throw new ApiError(`Request failed (${resp.status}). Please try again.`)
   }
   return body as T
 }

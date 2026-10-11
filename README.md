@@ -65,6 +65,8 @@ OSRM's per-segment car durations are converted to truck times by capping speed a
 ### Checkpoint weather
 Checkpoints sit at mile 0, every *N* miles, and at the destination. A final checkpoint that would land within N/4 miles of the destination is merged into it. All checkpoints for all routes are fetched in a few batched Open-Meteo requests: up to 100 locations per request, run in parallel. Each checkpoint uses the forecast hour nearest its ETA.
 
+**API budget.** Open-Meteo's free tier allows about 600 location lookups per minute. A plan uses at most 200 unique forecast locations. On very long trips at a 10-mile interval, checkpoints within the same small grid cell (from 0.1°, about 7 mi) share one forecast, but each still uses its own ETA hour. Forecasts are cached in memory for 20 minutes, a rate-limit response gets one retry, and users see a clear message if the limit is reached. Set `OPEN_METEO_API_KEY` to use Open-Meteo's commercial endpoint.
+
 - **Wind**: sustained 10 m wind speed, in mph. Gusts are shown but not scored.
 - **Rain**: `rain + showers`, in in/hr.
 - **Snow**: `snowfall`, in in/hr.
@@ -117,7 +119,7 @@ DJANGO_DEBUG=1 SUPABASE_URL=... SUPABASE_KEY=... python backend/manage.py runser
 npm run dev --prefix frontend
 ```
 
-Tests (risk thresholds, load rules, ranking, HOS, request validation):
+Tests (risk thresholds, load rules, ranking, HOS, weather clustering, request validation):
 
 ```bash
 cd backend && python manage.py test
@@ -145,4 +147,4 @@ alter table public.trip_plans enable row level security;
 ## Known limitations
 - OSRM's public server uses a car profile, so it doesn't know truck-only restrictions such as low bridges or weight limits. In production you'd swap it for a truck-aware router such as HERE, TomTom or Valhalla with a truck costing profile.
 - Forecasts are hourly. A checkpoint uses the hour nearest its ETA.
-- The public OSRM, Photon and Open-Meteo endpoints are rate-limited and best effort. A production deployment should use paid keys and caching.
+- The public OSRM, Photon and Open-Meteo endpoints are rate-limited and best effort. A production deployment should set `OPEN_METEO_API_KEY` and use a shared cache such as Redis instead of the per-instance in-memory cache.

@@ -10,7 +10,7 @@ from . import risk
 from .geo import haversine_mi, inverse_mercator_y, mercator_y, simplify
 from .weather import fetch_hourly, floor_hour
 
-MAX_CELLS = 360
+MAX_CELLS = 170
 HOURS = 48
 
 

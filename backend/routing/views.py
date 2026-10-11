@@ -51,7 +51,7 @@ def _place(value, field: str) -> dict:
     raise BadRequest(f"{field} is required")
 
 
-def _departure(value) -> datetime:
+def _departure(value, max_past_hours: int = 1) -> datetime:
     if not isinstance(value, str):
         raise BadRequest("departure is required")
     try:
@@ -62,7 +62,7 @@ def _departure(value) -> datetime:
         raise BadRequest("departure must include a timezone offset")
     dt = dt.astimezone(timezone.utc).replace(microsecond=0)
     now = datetime.now(timezone.utc)
-    if dt < now - timedelta(hours=1):
+    if dt < now - timedelta(hours=max_past_hours):
         raise BadRequest("Departure can't be in the past")
     if dt > now + timedelta(days=7):
         raise BadRequest("Departure must be within the next 7 days (forecast range)")
@@ -150,7 +150,8 @@ def heatmap_view(request):
         if any(not (-90 <= a <= 90 and -180 <= b <= 180) for a, b in pts):
             raise BadRequest("path coordinates are out of range")
         clean.append(pts)
-    departure = _departure(data.get("departure"))
+    # The heatmap is requested right after planning, but may be retried later from an open page.
+    departure = _departure(data.get("departure"), max_past_hours=12)
     load = _load(data.get("load_lb"))
     return JsonResponse(build_heatmap(clean, departure, load))
 

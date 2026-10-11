@@ -19,7 +19,9 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+# The API is stateless JSON with no cookies or sessions, so CSRF middleware isn't needed.
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
@@ -33,9 +35,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+if not DEBUG:
+    SECURE_HSTS_SECONDS = 31536000
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+OPEN_METEO_API_KEY = os.environ.get("OPEN_METEO_API_KEY", "")
 HTTP_USER_AGENT = "WeatherAwareTruckRouting/1.0 (+https://github.com)"
 
 LOGGING = {

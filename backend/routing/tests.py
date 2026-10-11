@@ -116,3 +116,22 @@ class PlanEndpointValidationTests(SimpleTestCase):
         args = plan.call_args.args
         self.assertEqual(args[3], 38000)
         self.assertEqual(args[4], 10)
+
+
+class ClusterTests(SimpleTestCase):
+    def test_keeps_exact_points_within_budget(self):
+        from .services.weather import cluster
+        pts = [(40 + i * 0.01, -100.0) for i in range(10)]
+        reps, idx = cluster(pts, 50)
+        self.assertEqual(len(reps), 10)
+        self.assertEqual(idx, list(range(10)))
+
+    def test_merges_nearby_points_over_budget(self):
+        from .services.weather import cluster
+        pts = [(40 + i * 0.02, -100.0) for i in range(100)]
+        reps, idx = cluster(pts, 30)
+        self.assertLessEqual(len(reps), 30)
+        self.assertEqual(len(idx), 100)
+        # Every point maps to a representative within ~0.5 degrees.
+        for p, i in zip(pts, idx):
+            self.assertLess(abs(p[0] - reps[i][0]), 0.5)
