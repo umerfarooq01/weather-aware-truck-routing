@@ -113,6 +113,7 @@ export function MapView({ plan, selected, onSelect, activeCheckpoint, onCheckpoi
   const markers = useRef<Map<number, L.CircleMarker>>(new Map())
   const heatLayer = useRef<{ overlay: L.ImageOverlay; ctx: CanvasRenderingContext2D } | null>(null)
   const truck = useRef<L.Marker | null>(null)
+  const truckWest = useRef(false)
   const callbacks = useRef({ onSelect, onCheckpoint })
   useEffect(() => {
     callbacks.current = { onSelect, onCheckpoint }
@@ -282,17 +283,27 @@ export function MapView({ plan, selected, onSelect, activeCheckpoint, onCheckpoi
     const route = plan?.routes.find((r) => r.id === selected)
     const track = route ? tracks.get(route.id) : undefined
     let pos: L.LatLng | null = null
+    let westbound = truckWest.current
     if (plan && route && track && heat && heatVisible) {
-      const offset = (new Date(plan.departure).getTime() - new Date(heat.start).getTime()) / 3_600_000
-      pos = positionAt(route, track, heatHour - offset)
+      const t = heatHour - (new Date(plan.departure).getTime() - new Date(heat.start).getTime()) / 3_600_000
+      pos = positionAt(route, track, t)
+      // Face the direction of travel: compare with where the truck is a little later
+      // (or a little earlier at the destination). Keep the last heading while stopped.
+      const ahead = positionAt(route, track, t + 0.5)
+      const behind = positionAt(route, track, Math.max(0, t - 0.5))
+      const from = pos && ahead && !ahead.equals(pos) ? pos : behind
+      const to = pos && ahead && !ahead.equals(pos) ? ahead : pos
+      if (from && to && Math.abs(to.lng - from.lng) > 1e-4) westbound = to.lng < from.lng
     }
     if (!pos) {
       truck.current?.remove()
       truck.current = null
       return
     }
+    truckWest.current = westbound
     if (!truck.current) truck.current = L.marker(pos, { icon: truckIcon, zIndexOffset: 1100, interactive: false }).addTo(map)
     else truck.current.setLatLng(pos)
+    truck.current.getElement()?.classList.toggle('west', westbound)
   }, [plan, selected, tracks, heat, heatVisible, heatHour])
 
   return <div ref={divRef} className="map" role="application" aria-label="Route map" />

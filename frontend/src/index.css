@@ -398,6 +398,8 @@ input[type='range']::-moz-range-thumb { width: 12px; height: 12px; border-radius
 .endpoint { border-radius: 50%; border: 3px solid var(--ink); background: #fff; box-shadow: 0 1px 4px rgb(0 0 0 / 25%); }
 .endpoint.destination { background: var(--ink); border-color: #fff; border-radius: 3px; }
 
+.truck-marker svg { transition: transform 0.2s ease; }
+.truck-marker.west svg { transform: scaleX(-1); }
 .truck-marker { display: grid !important; place-items: center; border-radius: 50%; background: var(--accent); color: #fff; box-shadow: 0 0 0 3px rgb(255 255 255 / 90%), 0 2px 8px rgb(0 0 0 / 30%); }
 
 .route-label {
