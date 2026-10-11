@@ -1,5 +1,7 @@
 # Headwind — Weather-Aware Truck Routing
 
+**Live demo:** https://weather-aware-truck-routing-mu.vercel.app
+
 A React + Django web app that helps a truck driver pick the safest route given the weather, the load weight and the travel time.
 
 Enter an origin, destination, departure time and load. Headwind:
