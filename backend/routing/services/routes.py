@@ -12,7 +12,8 @@ from .http import UpstreamError, get_json
 
 OSRM_URL = "https://router.project-osrm.org/route/v1/driving/"
 TRUCK_MAX_MPH = 65.0
-MAX_DETOUR_RATIO = 1.6  # discard forced alternatives that are much slower than the fastest route
+MAX_DETOUR_RATIO = 1.6
+MAX_SNAP_MI = 15.0  # an endpoint snapped further than this from the road network means no real route  # discard forced alternatives that are much slower than the fastest route
 
 
 @dataclass
@@ -50,6 +51,9 @@ def _fetch(points: list[tuple[float, float]], alternatives: int) -> list[dict]:
         if data.get("code") == "NoRoute":
             raise UpstreamError("No drivable route exists between these locations")
         raise UpstreamError(data.get("message") or "Routing service returned no routes")
+    for wp in data.get("waypoints", []):
+        if wp.get("distance", 0) / 1609.344 > MAX_SNAP_MI:
+            raise UpstreamError("No drivable route exists between these locations")
     return data["routes"]
 
 
@@ -101,6 +105,8 @@ def get_routes(origin: tuple[float, float], dest: tuple[float, float], want: int
     chosen: list[Route] = []
     for raw in _fetch([origin, dest], alternatives=want):
         route = _to_route(raw, "osrm")
+        if route.distance_mi < haversine_mi(origin, dest) * 0.95:
+            raise UpstreamError("No drivable route exists between these locations")
         if not chosen or _is_distinct(route, chosen):
             chosen.append(route)
         if len(chosen) == want:

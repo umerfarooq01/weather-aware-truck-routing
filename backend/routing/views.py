@@ -83,7 +83,7 @@ def _handle(fn):
     def wrapper(request, *args, **kwargs):
         try:
             return fn(request, *args, **kwargs)
-        except BadRequest as exc:
+        except (BadRequest, geocode.NotFound) as exc:
             return _error(str(exc), 400)
         except UpstreamError as exc:
             return _error(str(exc), 502)
